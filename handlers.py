@@ -1,0 +1,38 @@
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes
+from bot_modules.settings import ADMIN_IDS
+import json
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привет! Я бот для кросспостинга. Используй /menu для навигации.")
+
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Поиск постов", callback_data='search')],
+        [InlineKeyboardButton("Админ-панель", callback_data='admin')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Главное меню:", reply_markup=reply_markup)
+
+async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id in ADMIN_IDS:
+        await update.message.reply_text("Админ-панель: доступ к настройкам.")
+    else:
+        await update.message.reply_text("Доступ запрещён.")
+
+async def search_posts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyword = ' '.join(context.args)
+    if not keyword:
+        await update.message.reply_text("Укажите ключевое слово: /search <keyword>")
+        return
+    try:
+        with open('posts.json', 'r', encoding='utf-8') as f:
+            posts = json.load(f)
+        results = [post for post in posts if keyword.lower() in post['title'].lower()]
+        if results:
+            response = "\n".join([f"{post['title']}: {post['link']}" for post in results])
+            await update.message.reply_text(response)
+        else:
+            await update.message.reply_text("Посты не найдены.")
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка поиска: {e}")

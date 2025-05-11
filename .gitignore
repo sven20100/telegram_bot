@@ -1,0 +1,5 @@
+*.pyc
+__pycache__/
+bot.log
+posts.json
+.env
