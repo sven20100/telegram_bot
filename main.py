@@ -28,7 +28,7 @@ async def main():
     application.add_handler(CommandHandler("search", search_posts))
 
     # Запускаем парсинг как фоновую задачу
-    application.create_task(check_dzen_website(application.bot))
+    # application.create_task(check_dzen_website(application.bot))
 
     await application.run_polling()
     logger.info("Application started")
