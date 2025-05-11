@@ -1,7 +1,5 @@
-import asyncio
 import logging
 import warnings
-from telegram import Bot
 from telegram.ext import Application, CommandHandler
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts
@@ -29,11 +27,12 @@ async def main():
     application.add_handler(CommandHandler("admin", admin_panel))
     application.add_handler(CommandHandler("search", search_posts))
 
-    bot = Bot(token=TELEGRAM_TOKEN)
-    asyncio.create_task(check_dzen_website(bot))
+    # Запускаем парсинг как фоновую задачу
+    application.create_task(check_dzen_website(application.bot))
 
     await application.run_polling()
     logger.info("Application started")
 
 if __name__ == '__main__':
+    import asyncio
     asyncio.run(main())
