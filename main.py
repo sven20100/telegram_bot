@@ -37,22 +37,16 @@ async def main():
         await application.run_polling(drop_pending_updates=True)
     except Exception as e:
         logger.error(f"Ошибка при работе бота: {e}")
-        if application.running:
-            try:
-                await application.stop()
-            except Exception as stop_error:
-                logger.error(f"Ошибка при остановке бота: {stop_error}")
     finally:
-        try:
-            logger.info("Stopping application...")
-            await application.shutdown()
-            logger.info("Application stopped")
-        except Exception as shutdown_error:
-            logger.error(f"Ошибка при завершении работы: {shutdown_error}")
+        logger.info("Stopping application...")
+        if application.running:
+            await application.stop()
+        await application.shutdown()
+        logger.info("Application stopped")
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main())
+        asyncio.run(main(), debug=True)
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем")
     except Exception as e:
