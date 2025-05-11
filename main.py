@@ -1,5 +1,7 @@
 import logging
 import warnings
+import asyncio
+from telegram import Update  # Добавляем этот импорт
 from telegram.ext import Application, CommandHandler
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts
@@ -27,12 +29,31 @@ async def main():
     application.add_handler(CommandHandler("admin", admin_panel))
     application.add_handler(CommandHandler("search", search_posts))
 
-    # Запускаем парсинг как фоновую задачу
-    # application.create_task(check_dzen_website(application.bot))
-
-    await application.run_polling()
-    logger.info("Application started")
+    logger.info("Application starting...")
+    try:
+        await application.initialize()
+        await application.start()
+        logger.info("Application started")
+        await application.run_polling(drop_pending_updates=True)
+    except Exception as e:
+        logger.error(f"Ошибка при работе бота: {e}")
+        if application.running:
+            try:
+                await application.stop()
+            except Exception as stop_error:
+                logger.error(f"Ошибка при остановке бота: {stop_error}")
+    finally:
+        try:
+            logger.info("Stopping application...")
+            await application.shutdown()
+            logger.info("Application stopped")
+        except Exception as shutdown_error:
+            logger.error(f"Ошибка при завершении работы: {shutdown_error}")
 
 if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Бот остановлен пользователем")
+    except Exception as e:
+        logger.error(f"Критическая ошибка: {e}")
