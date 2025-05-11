@@ -5,7 +5,7 @@ TELEGRAM_TOKEN = "7938456191:AAFqpqVGWaIIy9XeOxprp_igDxGYikValBk"  # Замен�
 ADMIN_IDS = [7938456191]  # Твой ID, добавь другие, если нужно
 
 # Dzen profile URLs to parse
-DZEN_PROFILE_URLS = ["https://dzen.ru/hand_mader_ru"]  # Замени на реальные URL-ы Дзена
+DZEN_PROFILE_URLS = ["https://dzen.ru/id/680e334acbb89444e26a3bd2"]  # Замени на реальные URL-ы Дзена
 
 # Interval (seconds) between Dzen checks
 WEBSITE_CHECK_INTERVAL = 60

@@ -27,7 +27,7 @@ async def search_posts(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     try:
         with open('posts.json', 'r', encoding='utf-8') as f:
-            posts = json.load(f)
+            posts = [json.loads(line) for line in f]
         results = [post for post in posts if keyword.lower() in post['title'].lower()]
         if results:
             response = "\n".join([f"{post['title']}: {post['link']}" for post in results])
