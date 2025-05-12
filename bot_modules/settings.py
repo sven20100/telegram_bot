@@ -11,4 +11,4 @@ DZEN_PROFILE_URLS = ["https://dzen.ru/id/680e334acbb89444e26a3bd2"]  # Заме�
 WEBSITE_CHECK_INTERVAL = 60
 
 # Telegram channel ID for publishing
-TARGET_CHANNEL_ID = -1002684339596  # ID твоего канала
+TARGET_CHANNEL_ID = -10026843395966  # ID твоего канала
