@@ -1,7 +1,7 @@
 import logging
 import warnings
 import telegram
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, JobQueue
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts, handle_text
 from bot_modules.dzen_parser import check_dzen_website
@@ -27,9 +27,7 @@ def main():
         return
     try:
         application = Application.builder().token(TELEGRAM_TOKEN).build()
-        application.job_queue = JobQueue()
-        application.job_queue.set_application(application)
-        logger.info("Application and job_queue initialized successfully")
+        logger.info("Application initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         return
