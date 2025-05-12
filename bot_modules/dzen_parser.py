@@ -14,7 +14,7 @@ async def check_dzen_website(context):
             async with session.get(url, timeout=10) as response:
                 response.raise_for_status()
                 soup = BeautifulSoup(await response.text(), 'html.parser')
-                posts = soup.find_all('div', class_='card')
+                posts = soup.find_all('div', class_='feed__item')  # Обновлённый селектор
                 posts_data = []
                 for post in posts:
                     title = post.find('h2').text if post.find('h2') else ""
