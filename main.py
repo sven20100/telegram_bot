@@ -1,5 +1,6 @@
 import logging
 import warnings
+import telegram
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts, handle_text
@@ -20,6 +21,7 @@ warnings.filterwarnings("ignore", category=PTBUserWarning)
 
 def main():
     logger.info("Bot is starting...")
+    logger.info(f"python-telegram-bot version: {telegram.__version__}")
     if not TELEGRAM_TOKEN:
         logger.error("TELEGRAM_TOKEN is not set in settings.py")
         return
@@ -42,7 +44,7 @@ def main():
     application.job_queue.run_repeating(check_dzen_website, interval=3600, first=15)
     logger.info("Job queue scheduled for check_dzen_website")
 
-    application.run_polling()
+    application.run_polling(allowed_updates=["message", "callback_query"])
     logger.info("Application started")
 
 if __name__ == '__main__':
