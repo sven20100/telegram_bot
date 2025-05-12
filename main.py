@@ -24,8 +24,8 @@ def main():
         logger.error("TELEGRAM_TOKEN is not set in settings.py")
         return
     try:
-        application = Application.builder().token(TELEGRAM_TOKEN).build()
-        logger.info("Application initialized successfully")
+        application = Application.builder().token(TELEGRAM_TOKEN).job_queue(True).build()
+        logger.info("Application initialized successfully with job_queue")
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         return
