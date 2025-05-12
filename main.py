@@ -1,9 +1,8 @@
 import logging
 import warnings
-from telegram.ext import Application, CommandHandler
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram.warnings import PTBUserWarning
-from bot_modules.handlers import start, menu, admin_panel, search_posts
-from bot_modules.dzen_parser import check_dzen_website
+from bot_modules.handlers import start, menu, admin_panel, search_posts, handle_text
 from bot_modules.settings import TELEGRAM_TOKEN
 
 logging.basicConfig(
@@ -26,9 +25,7 @@ def main():
     application.add_handler(CommandHandler("menu", menu))
     application.add_handler(CommandHandler("admin", admin_panel))
     application.add_handler(CommandHandler("search", search_posts))
-
-    # Запускаем парсинг как повторяющуюся задачу
-    # application.job_queue.run_repeating(check_dzen_website, interval=3600, first=15)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 
     application.run_polling()
     logger.info("Application started")
