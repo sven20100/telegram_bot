@@ -5,7 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, J
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts, handle_text
 from bot_modules.dzen_parser import check_dzen_website
-from bot_modules.settings import TELEGRAM_TOKEN
+from bot_modules.settings import TELEGRAM_TOKEN, WEBSITE_CHECK_INTERVAL
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -43,8 +43,8 @@ def main():
     if application.job_queue is None:
         logger.error("Job queue is not initialized")
         return
-    application.job_queue.run_repeating(check_dzen_website, interval=3600, first=15)
-    logger.info("Job queue scheduled for check_dzen_website")
+    application.job_queue.run_repeating(check_dzen_website, interval=WEBSITE_CHECK_INTERVAL, first=15)
+    logger.info(f"Job queue scheduled for check_dzen_website with interval {WEBSITE_CHECK_INTERVAL} seconds")
 
     application.run_polling(allowed_updates=["message", "callback_query"])
     logger.info("Application started")
