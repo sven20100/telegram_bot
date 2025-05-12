@@ -40,13 +40,15 @@ async def main():
     finally:
         logger.info("Stopping application...")
         if application.running:
-            await application.stop()
-        await application.shutdown()
+            await application.stop()  # Ensure this is awaited
+        await application.shutdown()  # Ensure this is awaited
         logger.info("Application stopped")
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main(), debug=True)
+        policy = asyncio.WindowsSelectorEventLoopPolicy()
+        asyncio.set_event_loop_policy(policy)
+        asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем")
     except Exception as e:
