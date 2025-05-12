@@ -1,7 +1,7 @@
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from bot_modules.settings import ADMIN_IDS
+from bot_modules.settings import ADMIN_IDS, TARGET_CHANNEL_ID
 import json
 
 logger = logging.getLogger(__name__)
@@ -45,3 +45,23 @@ async def search_posts(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Посты не найдены.")
     except Exception as e:
         await update.message.reply_text(f"Ошибка поиска: {e}")
+
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message
+    if not message:
+        logger.info("Получено обновление без сообщения")
+        return
+    user_id = update.effective_user.id if update.effective_user else None
+    message_text = message.text or ""
+    logger.info(f"Получено сообщение от user_id: {user_id}, текст: {message_text[:100]}")
+    if user_id in ADMIN_IDS:
+        try:
+            await context.bot.send_message(
+                chat_id=TARGET_CHANNEL_ID,
+                text=message_text
+            )
+            logger.info(f"Переслано сообщение в {TARGET_CHANNEL_ID}: {message_text[:50]}...")
+        except Exception as e:
+            logger.error(f"Ошибка пересылки в {TARGET_CHANNEL_ID}: {e}")
+    else:
+        await update.message.reply_text("Только админы могут пересылать сообщения.")
