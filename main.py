@@ -1,7 +1,5 @@
 import logging
 import warnings
-import asyncio
-from telegram import Update  # Добавляем этот импорт
 from telegram.ext import Application, CommandHandler
 from telegram.warnings import PTBUserWarning
 from bot_modules.handlers import start, menu, admin_panel, search_posts
@@ -12,7 +10,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
     handlers=[
-        logging.FileHandler('bot.log'),
+        logging.FileHandler('bot.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -20,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 warnings.filterwarnings("ignore", category=PTBUserWarning)
 
-async def main():
+def main():
     logger.info("Bot is starting...")
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
@@ -29,27 +27,16 @@ async def main():
     application.add_handler(CommandHandler("admin", admin_panel))
     application.add_handler(CommandHandler("search", search_posts))
 
-    logger.info("Application starting...")
-    try:
-        await application.initialize()
-        await application.start()
-        logger.info("Application started")
-        await application.run_polling(drop_pending_updates=True)
-    except Exception as e:
-        logger.error(f"Ошибка при работе бота: {e}")
-    finally:
-        logger.info("Stopping application...")
-        if application.running:
-            await application.stop()  # Ensure this is awaited
-        await application.shutdown()  # Ensure this is awaited
-        logger.info("Application stopped")
+    # Запускаем парсинг как повторяющуюся задачу
+    # application.job_queue.run_repeating(check_dzen_website, interval=3600, first=15)
+
+    application.run_polling()
+    logger.info("Application started")
 
 if __name__ == '__main__':
     try:
-        policy = asyncio.WindowsSelectorEventLoopPolicy()
-        asyncio.set_event_loop_policy(policy)
-        asyncio.run(main())
+        main()
     except KeyboardInterrupt:
         logger.info("Бот остановлен пользователем")
     except Exception as e:
-        logger.error(f"Критическая ошибка: {e}")
+        logger.error(f"Ошибка: {e}")
