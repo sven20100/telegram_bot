@@ -1,5 +1,5 @@
 # Telegram bot token from @BotFather
-TELEGRAM_TOKEN = "7938456191:AAGU8OuPNknQfHCEMxDhNlLHDpWfJ_TqRmk"  # Замени на токен от @BotFather
+TELEGRAM_TOKEN = "7938456191:AAEb5Kg0RYtZYsTk4IFipJNW-pxk_poYzRg"  # Замени на токен от @BotFather
 
 # List of admin Telegram IDs
 ADMIN_IDS = [6503798414]  # Твой ID, добавь другие, если нужно
