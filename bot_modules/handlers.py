@@ -1,7 +1,10 @@
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from bot_modules.settings import ADMIN_IDS
 import json
+
+logger = logging.getLogger(__name__)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Я бот для кросспостинга. Используй /menu для навигации.")
@@ -15,8 +18,14 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Главное меню:", reply_markup=reply_markup)
 
 async def admin_panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id in ADMIN_IDS:
-        await update.message.reply_text("Админ-панель: доступ к настройкам.")
+    user_id = update.effective_user.id if update.effective_user else None
+    logger.info(f"Попытка доступа к /admin, user_id: {user_id}, ADMIN_IDS: {ADMIN_IDS}")
+    if user_id in ADMIN_IDS:
+        keyboard = [
+            [InlineKeyboardButton("Показать статистику", callback_data="show_stats")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text("Админ-панель:", reply_markup=reply_markup)
     else:
         await update.message.reply_text("Доступ запрещён.")
 
