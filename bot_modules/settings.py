@@ -1,5 +1,5 @@
 # Telegram bot token from @BotFather
-TELEGRAM_TOKEN = "7938456191:AAEHHfz6u-PAm045AatKRCSbFHYc8d_mzrw"  # Замени на токен от @BotFather
+TELEGRAM_TOKEN = "7938456191:AAGU8OuPNknQfHCEMxDhNlLHDpWfJ_TqRmk"  # Замени на токен от @BotFather
 
 # List of admin Telegram IDs
 ADMIN_IDS = [6503798414]  # Твой ID, добавь другие, если нужно
@@ -11,4 +11,4 @@ DZEN_PROFILE_URLS = ["https://dzen.ru/id/680e334acbb89444e26a3bd2"]  # Заме�
 WEBSITE_CHECK_INTERVAL = 60
 
 # Telegram channel ID for publishing
-TARGET_CHANNEL_ID = -1002684339596 # ID твоего канала
+TARGET_CHANNEL_ID = -1002684339596 # ID твоего канала.
