@@ -1,15 +1,15 @@
 import logging
-from telegram import Bot
+from telegram.error import TelegramError
 from bot_modules.settings import TARGET_CHANNEL_ID
 
 logger = logging.getLogger(__name__)
 
-async def publish_post(bot: Bot, post):
+async def publish_to_channel(context, post):
     try:
-        await bot.send_message(
+        await context.bot.send_message(
             chat_id=TARGET_CHANNEL_ID,
-            text=f"New post: {post['title']}\n{post['link']}"
+            text=f"{post['title']}\n{post['link']}"
         )
-        logger.info(f"Опубликован пост: {post['title']}")
-    except Exception as e:
-        logger.error(f"Ошибка публикации: {e}")
+        logger.info(f"Опубликован пост в {TARGET_CHANNEL_ID}: {post['title'][:50]}...")
+    except TelegramError as e:
+        logger.error(f"Ошибка публикации в {TARGET_CHANNEL_ID}: {e}")
