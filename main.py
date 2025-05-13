@@ -1,10 +1,4 @@
-import asyncio
-import logging
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from telegram.error import Conflict, NetworkError
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import httpx
-# bot.py
+# main.py
 import asyncio
 import logging
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
@@ -19,15 +13,15 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("bot.log"),  # Логи в файл
-        logging.StreamHandler()  # Логи в консоль
+        logging.FileHandler("bot.log"),
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
 # Конфигурация
-TOKEN = "YOUR_BOT_TOKEN"  # Замените на ваш токен
-ADMIN_IDS = [123456789]  # Замените на ваши ID администраторов
+TOKEN = "7938456191:AAG14pZ0Dqw2BSSy_YvCz5axtRXHMcLhZUc"  # Ваш реальный токен
+ADMIN_IDS = [6503798414]  # Замените на ваши ID администраторов
 CHANNEL_ID = -1002684339596  # Замените на ваш ID канала
 
 # Обработчик ошибок
@@ -38,7 +32,7 @@ async def error_handler(update, context):
         await context.application.updater.stop()
         await context.application.stop()
         await context.application.shutdown()
-        raise context.error  # Завершаем приложение
+        raise context.error
     elif isinstance(context.error, NetworkError):
         logger.warning(f"Сетевая ошибка Telegram: {context.error}. Продолжаю работу...")
     else:
@@ -63,14 +57,14 @@ async def main():
         # Настройка планировщика
         scheduler = AsyncIOScheduler()
         scheduler.add_job(check_dzen_website, "interval", seconds=60)
-        logger.info("Планировщик настроен для check_dzen_website с интервалом 60 секунд")
+        logger.info("Планировщик настроен для check_dzen_website")
         scheduler.start()
 
         # Запуск приложения
         await app.initialize()
         await app.start()
         logger.info("Application запущено")
-        await app.updater.start_polling(drop_pending_updates=True)  # Сбрасываем старые обновления
+        await app.updater.start_polling(drop_pending_updates=True)
 
         # Бесконечное ожидание
         await asyncio.Event().wait()
@@ -79,22 +73,23 @@ async def main():
         logger.error(f"Ошибка в main: {e}")
         raise
     finally:
-        # Корректное завершение
         logger.info("Завершение работы...")
-        if app:
-            await app.updater.stop()
-            await app.stop()
-            await app.shutdown()
-            logger.info("Application остановлено")
         if scheduler:
             scheduler.shutdown()
             logger.info("Планировщик остановлен")
+        if app:
+            if app.updater.running:
+                await app.updater.stop()
+                logger.info("Updater остановлен")
+            await app.stop()
+            await app.shutdown()
+            logger.info("Application остановлено")
 
 if __name__ == "__main__":
     logger.info("Проверка на единственный экземпляр...")
-    lock = LockFile("bot.lock")
+    lock = LockFile("bot.lock", timeout=5)
     try:
-        with lock(timeout=5):
+        with lock:
             asyncio.run(main())
     except LockTimeout:
         logger.error("Другой экземпляр бота уже запущен! Завершаю...")
