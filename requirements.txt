@@ -1,4 +1,4 @@
-aiohttp==3.11.18
-aiofiles==24.1.0
-beautifulsoup4==4.12.3
-python-telegram-bot[job-queue]==20.6
+python-telegram-bot==20.7
+apscheduler==3.10.4
+httpx==0.27.0
+lockfile==0.12.2

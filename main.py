@@ -1,56 +1,107 @@
+import asyncio
 import logging
-import warnings
-import telegram
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
-from telegram.warnings import PTBUserWarning
-from bot_modules.handlers import start, menu, admin_panel, search_posts, handle_text
+from telegram.error import Conflict, NetworkError
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import httpx
+# bot.py
+import asyncio
+import logging
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram.error import Conflict, NetworkError
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from lockfile import LockFile, LockTimeout
+from bot_modules.handlers import start, admin, handle_message
 from bot_modules.dzen_parser import check_dzen_website
-from bot_modules.settings import TELEGRAM_TOKEN, WEBSITE_CHECK_INTERVAL
 
+# Настройка логирования
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler('bot.log', encoding='utf-8'),
-        logging.StreamHandler()
+        logging.FileHandler("bot.log"),  # Логи в файл
+        logging.StreamHandler()  # Логи в консоль
     ]
 )
 logger = logging.getLogger(__name__)
 
-warnings.filterwarnings("ignore", category=PTBUserWarning)
+# Конфигурация
+TOKEN = "YOUR_BOT_TOKEN"  # Замените на ваш токен
+ADMIN_IDS = [123456789]  # Замените на ваши ID администраторов
+CHANNEL_ID = -1002684339596  # Замените на ваш ID канала
 
-def main():
-    logger.info("Bot is starting...")
-    logger.info(f"python-telegram-bot version: {telegram.__version__}")
-    if not TELEGRAM_TOKEN:
-        logger.error("TELEGRAM_TOKEN is not set in settings.py")
-        return
+# Обработчик ошибок
+async def error_handler(update, context):
+    logger.error(f"Ошибка: {context.error}")
+    if isinstance(context.error, Conflict):
+        logger.error("Конфликт getUpdates. Завершаю приложение...")
+        await context.application.updater.stop()
+        await context.application.stop()
+        await context.application.shutdown()
+        raise context.error  # Завершаем приложение
+    elif isinstance(context.error, NetworkError):
+        logger.warning(f"Сетевая ошибка Telegram: {context.error}. Продолжаю работу...")
+    else:
+        logger.warning(f"Необработанная ошибка: {context.error}")
+
+async def main():
+    logger.info("Запуск бота...")
+    app = None
+    scheduler = None
     try:
-        application = Application.builder().token(TELEGRAM_TOKEN).build()
-        logger.info("Application initialized successfully")
+        # Инициализация приложения
+        app = Application.builder().token(TOKEN).build()
+        logger.info("Application инициализировано")
+
+        # Регистрация обработчиков
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("admin", admin))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        app.add_error_handler(error_handler)
+        logger.info("Обработчики зарегистрированы")
+
+        # Настройка планировщика
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(check_dzen_website, "interval", seconds=60)
+        logger.info("Планировщик настроен для check_dzen_website с интервалом 60 секунд")
+        scheduler.start()
+
+        # Запуск приложения
+        await app.initialize()
+        await app.start()
+        logger.info("Application запущено")
+        await app.updater.start_polling(drop_pending_updates=True)  # Сбрасываем старые обновления
+
+        # Бесконечное ожидание
+        await asyncio.Event().wait()
+
     except Exception as e:
-        logger.error(f"Failed to initialize application: {e}")
-        return
+        logger.error(f"Ошибка в main: {e}")
+        raise
+    finally:
+        # Корректное завершение
+        logger.info("Завершение работы...")
+        if app:
+            await app.updater.stop()
+            await app.stop()
+            await app.shutdown()
+            logger.info("Application остановлено")
+        if scheduler:
+            scheduler.shutdown()
+            logger.info("Планировщик остановлен")
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("menu", menu))
-    application.add_handler(CommandHandler("admin", admin_panel))
-    application.add_handler(CommandHandler("search", search_posts))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-
-    if application.job_queue is None:
-        logger.error("Job queue is not initialized")
-        return
-    application.job_queue.run_repeating(check_dzen_website, interval=WEBSITE_CHECK_INTERVAL, first=15)
-    logger.info(f"Job queue scheduled for check_dzen_website with interval {WEBSITE_CHECK_INTERVAL} seconds")
-
-    application.run_polling(allowed_updates=["message", "callback_query"])
-    logger.info("Application started")
-
-if __name__ == '__main__':
+if __name__ == "__main__":
+    logger.info("Проверка на единственный экземпляр...")
+    lock = LockFile("bot.lock")
     try:
-        main()
+        with lock(timeout=5):
+            asyncio.run(main())
+    except LockTimeout:
+        logger.error("Другой экземпляр бота уже запущен! Завершаю...")
+        exit(1)
     except KeyboardInterrupt:
-        logger.info("Бот остановлен пользователем")
+        logger.info("Получен сигнал прерывания")
+        exit(0)
     except Exception as e:
-        logger.error(f"Ошибка: {e}")
+        logger.error(f"Критическая ошибка: {e}")
+        exit(1)
