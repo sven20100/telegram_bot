@@ -8,20 +8,20 @@ from lockfile import LockFile, LockTimeout
 from bot_modules.handlers import start, admin, handle_message
 from bot_modules.dzen_parser import check_dzen_website
 
-# Настройка логирования
+# Настройка логирования с UTF-8
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("bot.log"),
+        logging.FileHandler("bot.log", encoding="utf-8"),
         logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
 # Конфигурация
-TOKEN = "7938456191:AAG14pZ0Dqw2BSSy_YvCz5axtRXHMcLhZUc"  # Ваш реальный токен
-ADMIN_IDS = [6503798414]  # Замените на ваши ID администраторов
+TOKEN = "7938456191:AAG14pZ0Dqw2BSSy_YvCz5axtRXHMcLhZUc"  # Ваш токен
+ADMIN_IDS = [123456789]  # Замените на ваши ID администраторов
 CHANNEL_ID = -1002684339596  # Замените на ваш ID канала
 
 # Обработчик ошибок
@@ -69,6 +69,8 @@ async def main():
         # Бесконечное ожидание
         await asyncio.Event().wait()
 
+    except asyncio.CancelledError:
+        logger.info("Получен сигнал отмены (asyncio.CancelledError)")
     except Exception as e:
         logger.error(f"Ошибка в main: {e}")
         raise
@@ -78,7 +80,7 @@ async def main():
             scheduler.shutdown()
             logger.info("Планировщик остановлен")
         if app:
-            if app.updater.running:
+            if app.updater and app.updater.running:
                 await app.updater.stop()
                 logger.info("Updater остановлен")
             await app.stop()
@@ -95,7 +97,10 @@ if __name__ == "__main__":
         logger.error("Другой экземпляр бота уже запущен! Завершаю...")
         exit(1)
     except KeyboardInterrupt:
-        logger.info("Получен сигнал прерывания")
+        logger.info("Получен сигнал прерывания (Ctrl+C)")
+        exit(0)
+    except asyncio.CancelledError:
+        logger.info("Программа прервана (asyncio.CancelledError)")
         exit(0)
     except Exception as e:
         logger.error(f"Критическая ошибка: {e}")
